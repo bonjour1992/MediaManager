@@ -1,0 +1,80 @@
+#name {
+font-size: 200%;
+}
+
+#panel-top{
+	padding:0px 10px;
+
+}
+
+#body-p-main{
+	min-height: 500px;	
+}
+
+#posters{
+	float:left;
+	padding:0px 10px;
+}
+#info{
+	display:inline-block;
+	width:60%;
+}
+#rating{
+	display:inline-block;
+	float:right;
+	padding:0px 10px;
+}
+
+.panel{
+	clear:both;
+	padding:10px;
+	margin : 20px;
+}
+
+.btn-info{
+	margin: 0px 5px;
+}
+
+.cover{
+	margin: 3px;
+	display:inline-block;
+	width:185px;
+	height:330px;
+	position: relative;
+	overflow:hidden;
+}
+
+.star-rating{
+		display : inline;
+}
+
+.cover-text{
+	display: block;
+	position: absolute;
+	bottom: 0px;
+	background-color:#ffffff;
+	width:100%;
+}
+
+.available{
+	background-color:#ccffee;
+}
+
+#rating-title{
+	width:200px;
+}
+
+.bootstrap-switch-container{
+height:2em;
+}
+
+.playing{
+font-weight: bold;
+}
+
+#playlist{
+max-height:200px;
+float:right;
+width : 500px;
+overflow: scroll;
+}

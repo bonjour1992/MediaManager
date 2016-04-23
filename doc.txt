@@ -1,0 +1,19 @@
+index
+ 
+tmdb
+m : movie
+k : keywords
+g : genre
+p : person
+n : nation
+c : compagny
+l : language
+
+last fm
+b : group/band
+a : album
+s : song
+
+global
+lc : list named
+

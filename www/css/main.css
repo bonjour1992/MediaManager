@@ -1,0 +1,13 @@
+body{
+	background-color:#dddddd;
+}
+.panel{
+	background-color:#ffffff;
+}
+#menu{
+font-size: 2em;
+margin : 10px;
+}
+#menu div{
+margin :5px;
+}

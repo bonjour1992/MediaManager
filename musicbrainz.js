@@ -5,78 +5,72 @@ var parseXML = require('xml2js').parseString;
 module.exports = {
     query : function (obj,id,inc,success,failure )
     {
-		console.log("call to musicbrainz: http://musicbrainz.org/ws/2/"+obj+"/"+id+"?inc="+inc)
+		console.log("call to musicbrainz: http://musicbrainz.org/ws/2/"+obj+"/"+id+"?inc="+inc+"&fmt=json")
         var req= http.request(
+        {
+            hostname:"musicbrainz.org",
+            port:80,
+            path:"/ws/2/"+obj+"/"+id+"?inc="+inc+"&fmt=json",
+            method :"GET",
+            headers: {'user-agent': 'media manager (contact:bonjour1992@laposte.net)'},
+        }, function(res)
+        {
+            var st='';
+            res.on('data',function (chunk)
             {
-                hostname:"musicbrainz.org",
-				port:80,
-				path:"/ws/2/"+obj+"/"+id+"?inc="+inc,
-				method :"GET",
-				headers: {'user-agent': 'media manager (contact:bonjour1992@laposte.net)'},
-            }, function(res)
-            {
-                var st='';
-                res.on('data',function (chunk)
-                {
-                    st+=chunk;
-                })
-                res.on('end',function()
-                {
-					parseXML(st,function (err,result){
-						if (err || result.error) { 
-						failure(err)
-
-						//exports.query(obj,id,inc,success,failure)
-							}
-							else{
-								success(result.metadata[obj][0])
-							}
-						})
-                })
+                st+=chunk;
             })
-            req.on("error",function(e)
+            res.on('end',function()
             {
-                failure(e.message)
-            });
-            req.end();
+                var res= JSON.parse(st)
+                if(res.error)
+                {
+                    failure(res.error)
+                }
+                else
+                {
+                  success(res)
+                }
+              })
+          
+
+      
+        })
+        req.on("error",function(e)
+        {
+            failure(e.message)
+        });
+        req.end();
     },
     
-	search : function (type,s,success,failure)
-	 {
-		console.log("call to musicbrainz: http://musicbrainz.org/ws/2/"+type+"?query="+encodeURIComponent( s))
+    search : function (type,s,success,failure)
+    {
+		//console.log("call to musicbrainz: http://musicbrainz.org/ws/2/"+type+"?query="+encodeURIComponent( s))
         var req= http.request(
+        {
+            hostname:"musicbrainz.org",
+            port:80,
+            path:"/ws/2/"+type+"?query="+encodeURIComponent( s)+"&fmt=json",
+            method :"GET",
+            headers: {'user-agent': 'media manager (contact:bonjour1992@laposte.net)'},
+        }, function(res)
+        {
+            var st='';
+            res.on('data',function (chunk)
             {
-                hostname:"musicbrainz.org",
-				port:80,
-				path:"/ws/2/"+type+"?query="+encodeURIComponent( s),
-				method :"GET",
-				headers: {'user-agent': 'media manager (contact:bonjour1992@laposte.net)'},
-            }, function(res)
-            {
-                var st='';
-                res.on('data',function (chunk)
-                {
-                    st+=chunk;
-                })
-                res.on('end',function()
-                {
-					parseXML(st,function (err,result){
-						if (err || result.error|| !result.metadata[type+"-list"]) { 
-						failure(err)
-						//exports.query(obj,id,inc,success,failure)
-							}
-							else{
-								//console.log(result.metadata[type+"-list"][0][type])
-								success(result.metadata[type+"-list"][0][type])
-							}
-						})
-                })
+                st+=chunk;
             })
-            req.on("error",function(e)
+            res.on('end',function()
             {
-                failure(e.message)
-            });
-            req.end();
+               success(JSON.parse(st))
+                    //console.log(st)
+                })
+        })
+        req.on("error",function(e)
+        {
+            failure(e.message)
+        });
+        req.end();
     }
-	
+
 }

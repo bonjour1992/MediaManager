@@ -3,7 +3,7 @@ module.exports={
 	{
 		if (old_key !== new_key) {
 			Object.defineProperty(obj, new_key,
-			Object.getOwnPropertyDescriptor(obj, old_key));
+				Object.getOwnPropertyDescriptor(obj, old_key));
 			delete obj[old_key];
 		}
 	},
@@ -15,7 +15,7 @@ module.exports={
 		res = {}
 		//type
 		res.type=type
-		res.id = obj.id || obj['$'].id
+		res.id = obj.id 
 
 		
 		
@@ -23,84 +23,104 @@ module.exports={
 		switch (type)
 		{
 			case "band":
-				res.name=obj.name[0]
-				if (obj["life-span"] && obj["life-span"][0]["begin"])
-				{
-				res.birthday=obj["life-span"][0]["begin"][0]
-				if (obj["life-span"][0]["end"])
-				{
-				res.deathday=obj["life-span"][0]["end"][0]
-				}
-				}
-				if (obj["release-list"])
-				{
-					res.releases=[]
-					for ( var r in obj["release-list"][0].release)
-					{
-						res.releases.push({
-							name : obj["release-list"][0].release[r].title[0],
-							id : obj["release-list"][0].release[r]['$'].id,
-						type: "album"})
-					}
-				}
-				break
-			case "album" :
-				res.name=obj.title[0]
-				res.date=obj.date[0]
-				res.countries=[{id:obj.country[0],
-						name:obj.country[0],
-				type:"nation"}]
-				res.artist={
-				name :obj['artist-credit'][0]['name-credit'][0].artist[0].name[0],
-				id : obj['artist-credit'][0]['name-credit'][0].artist[0]['$'].id,
-				type : "band"}
-				res.songs=[]
-				for ( var r in obj["medium-list"][0].medium[0]["track-list"][0].track)
-				{
-					res.songs.push({
-						name : obj["medium-list"][0].medium[0]["track-list"][0].track[r].recording[0].title[0],
-						id : obj["medium-list"][0].medium[0]["track-list"][0].track[r].recording[0]['$'].id,
-					type: "song"})
-				}			
-				
-				break
-				
-				case "song" :
-				res.name=obj.title[0]
-				res.runtime=ms_to_minsec(obj.length[0])
-				res.artist={
-				name :obj['artist-credit'][0]['name-credit'][0].artist[0].name[0],
-				id : obj['artist-credit'][0]['name-credit'][0].artist[0]['$'].id,
-				type : "band"}
-				res.releases=[]
-				for ( var r in obj["release-list"][0].release)
-				{
-					res.releases.push({
-						name : obj["release-list"][0].release[r].title[0],
-						id : obj["release-list"][0].release[r]['$'].id,
+			res.name=obj.name
+			if (obj["life-span"] )
+			{
+				res.birthday=obj["life-span"]["begin"]
+
+				res.deathday=obj["life-span"]["end"]
+
+			}
+
+
+			res.releases=[]
+			for ( var r in obj["releases"])
+			{
+				res.releases.push({
+					name : obj["releases"][r].title,
+					id : obj["releases"][r].id,
+					date : obj["releases"][r].date,
+					info:  obj["releases"][r].country,
 					type: "album"})
+			}
+			
+			break
+			case "album" :
+			res.name=obj.title
+			if (obj.date)
+			{
+				res.date=obj.date
+			}
+			if (obj.country)
+			{
+				res.countries=[{id:obj.country,
+					name:obj.country,
+					type:"nation"}]
 				}
-				break
-			case "movie":
-				res.name=obj.title
-				if (obj.title !=obj.original_title)
-				{
-					res.original_name=obj.original_title
-				}
-				res.date = obj.release_date
-				res.year = new Date(res.date).getFullYear()
-				res.genres=[]
-				for (var i in obj.genres)
-				{
-					res.genres[res.genres.length]=
+
+				res.artist={
+					name :obj['artist-credit'][0].artist.name,
+					id : obj['artist-credit'][0].artist.id,
+					type : "band"}
+					res.info=obj['artist-credit'][0].artist.name
+
+					res.songs=[]
+					for ( var r in obj.media[0].tracks)
 					{
-						name:obj.genres[i].name,
-						type:"genre",
-						id:obj.genres[i].id
+						res.songs.push({
+							name : obj.media[0].tracks[r].recording.title,
+							id : obj.media[0].tracks[r].recording.id,
+							type: "song"})
+					}			
+
+					break
+
+					case "song" :
+					res.name=obj.title
+					if (obj.length)
+					{
+						res.runtime=ms_to_minsec(obj.length)
 					}
-					
-				}
-				
+					res.artist={
+						name :obj['artist-credit'][0].artist.name,
+						id : obj['artist-credit'][0].artist.id,
+						type : "band"}
+						res.info=obj['artist-credit'][0].artist.name
+						res.releases=[]
+						if (obj["releases"])
+						{
+							for ( var r in obj["releases"])
+							{
+								res.releases.push({
+									name : obj["releases"][r].title,
+									id : obj["releases"][r].id,
+									date :  obj["releases"][r].date,
+									info:  obj["releases"][r].country,
+									type: "album"})
+							}
+						}
+						break
+						case "movie":
+						res.tmdb_id=obj.id
+						res.name=obj.title
+						if (obj.title !=obj.original_title)
+						{
+							res.original_name=obj.original_title
+						}
+						res.date = obj.release_date
+						res.year = new Date(res.date).getFullYear()
+						res.genres=[]
+						for (var i in obj.genres)
+						{
+							res.genres[res.genres.length]=
+							{
+								name:obj.genres[i].name,
+								type:"genre",
+								id:obj.genres[i].id
+							}
+
+						}
+
 				//res.backdrop=obj.backdrop_path
 				res.poster=obj.poster_path
 				
@@ -133,17 +153,17 @@ module.exports={
 				}
 				if ( obj.keywords)
 				{
-				res.keywords=[]
-				
-				for (var i in obj.keywords.keywords)
-				{
+					res.keywords=[]
+
+					for (var i in obj.keywords.keywords)
+					{
 						res.keywords[res.keywords.length]=
 						{
 							id:obj.keywords.keywords[i].id,
 							name:obj.keywords.keywords[i].name,
 							type:"keyword"
 						}
-				}
+					}
 				}
 				if (obj.images)
 				{
@@ -164,25 +184,25 @@ module.exports={
 					for (var i in obj.credits.cast)
 					{
 						res.cast[res.cast.length]=
-							{
-								name:obj.credits.cast[i].name,
-								id:obj.credits.cast[i].id,
-								type:"person",
-								poster:obj.credits.cast[i].profile_path,
-								info:obj.credits.cast[i].character
-							}
+						{
+							name:obj.credits.cast[i].name,
+							id:obj.credits.cast[i].id,
+							type:"person",
+							poster:obj.credits.cast[i].profile_path,
+							info:obj.credits.cast[i].character
+						}
 					}
 					res.crew=[]
 					for (var i in obj.credits.crew)
 					{
 						res.crew[res.crew.length]=
-							{
-								name:obj.credits.crew[i].name,
-								id:obj.credits.crew[i].id,
-								type:"person",
-								poster:obj.credits.crew[i].profile_path,
-								info:obj.credits.crew[i].job
-							}
+						{
+							name:obj.credits.crew[i].name,
+							id:obj.credits.crew[i].id,
+							type:"person",
+							poster:obj.credits.crew[i].profile_path,
+							info:obj.credits.crew[i].job
+						}
 					}
 					res.director=[]
 					for (var i in obj.credits.crew)
@@ -190,12 +210,12 @@ module.exports={
 						if (obj.credits.crew[i].job=="Director")
 						{
 							res.director[res.director.length]=
-								{
-									name:obj.credits.crew[i].name,
-									id:obj.credits.crew[i].id,
-									type:"person",
-									poster:obj.credits.crew[i].profile_path
-								}
+							{
+								name:obj.credits.crew[i].name,
+								id:obj.credits.crew[i].id,
+								type:"person",
+								poster:obj.credits.crew[i].profile_path
+							}
 						}
 					}					
 				}
@@ -220,7 +240,8 @@ module.exports={
 					}
 				}
 				break
-			case "tv":
+				case "tv":
+				res.tmdb_id=obj.id
 				res.name=obj.name
 				if (obj.name !=obj.original_name)
 				{
@@ -232,7 +253,7 @@ module.exports={
 				res.status=obj.status
 				if (obj.external_ids)
 				{
-				res.imdb=obj.external_ids.imdb_id
+					res.imdb=obj.external_ids.imdb_id
 				}
 				res.genres=[]
 				for (var i in obj.genres)
@@ -303,25 +324,25 @@ module.exports={
 					for (var i in obj.credits.cast)
 					{
 						res.tv_cast[res.tv_cast.length]=
-							{
-								name:obj.credits.cast[i].name,
-								id:obj.credits.cast[i].id,
-								type:"person",
-								poster:obj.credits.cast[i].profile_path,
-								info:obj.credits.cast[i].character
-							}
+						{
+							name:obj.credits.cast[i].name,
+							id:obj.credits.cast[i].id,
+							type:"person",
+							poster:obj.credits.cast[i].profile_path,
+							info:obj.credits.cast[i].character
+						}
 					}
 					res.tv_crew=[]
 					for (var i in obj.credits.crew)
 					{
 						res.tv_crew[res.tv_crew.length]=
-							{
-								name:obj.credits.crew[i].name,
-								id:obj.credits.crew[i].id,
-								type:"person",
-								poster:obj.credits.crew[i].profile_path,
-								info:obj.credits.crew[i].job
-							}
+						{
+							name:obj.credits.crew[i].name,
+							id:obj.credits.crew[i].id,
+							type:"person",
+							poster:obj.credits.crew[i].profile_path,
+							info:obj.credits.crew[i].job
+						}
 					}
 					res.tv_creator=[]
 					for (var i in obj.credits.crew)
@@ -329,18 +350,19 @@ module.exports={
 						if (obj.credits.crew[i].job=="Creator")
 						{
 							res.tv_creator[res.tv_creator.length]=
-								{
-									name:obj.credits.crew[i].name,
-									id:obj.credits.crew[i].id,
-									type:"person",
-									poster:obj.credits.crew[i].profile_path
-								}
+							{
+								name:obj.credits.crew[i].name,
+								id:obj.credits.crew[i].id,
+								type:"person",
+								poster:obj.credits.crew[i].profile_path
+							}
 						}
 					}					
 				}	
-			
+
 				break
-			case "person":
+				case "person":
+				res.tmdb_id=obj.id
 				res.name=obj.name
 				res.birthday=obj.birthday
 				res.deathday=obj.deathday
@@ -348,7 +370,7 @@ module.exports={
 				res.overview=obj.biography
 				if (obj.external_ids)
 				{
-				res.imdb=obj.external_ids.imdb_id
+					res.imdb=obj.external_ids.imdb_id
 				}
 				res.poster=obj.profile_path
 				res.site=obj.homepage
@@ -372,26 +394,26 @@ module.exports={
 					for (var i in obj.movie_credits.cast)
 					{
 						res.cast[res.cast.length]=
-							{
-								name:obj.movie_credits.cast[i].title+" ("+new Date(obj.movie_credits.cast[i].release_date).getFullYear()+")",
-								id:obj.movie_credits.cast[i].id,
-								type:"movie",
-								poster:obj.movie_credits.cast[i].poster_path,
-								info:obj.movie_credits.cast[i].character
-							}
+						{
+							name:obj.movie_credits.cast[i].title+" ("+new Date(obj.movie_credits.cast[i].release_date).getFullYear()+")",
+							id:obj.movie_credits.cast[i].id,
+							type:"movie",
+							poster:obj.movie_credits.cast[i].poster_path,
+							info:obj.movie_credits.cast[i].character
+						}
 					}
 					obj.movie_credits.crew.sort(compare_date)
 					res.crew=[]
 					for (var i in obj.movie_credits.crew)
 					{
 						res.crew[res.crew.length]=
-							{
-								name:obj.movie_credits.crew[i].title+" ("+new Date(obj.movie_credits.crew[i].release_date).getFullYear()+")",
-								id:obj.movie_credits.crew[i].id,
-								type:"movie",
-								poster:obj.movie_credits.crew[i].poster_path,
-								info:obj.movie_credits.crew[i].job
-							}
+						{
+							name:obj.movie_credits.crew[i].title+" ("+new Date(obj.movie_credits.crew[i].release_date).getFullYear()+")",
+							id:obj.movie_credits.crew[i].id,
+							type:"movie",
+							poster:obj.movie_credits.crew[i].poster_path,
+							info:obj.movie_credits.crew[i].job
+						}
 					}
 					res.director=[]
 					
@@ -400,12 +422,12 @@ module.exports={
 						if (obj.movie_credits.crew[i].job=="Director")
 						{
 							res.director[res.director.length]=
-								{
-									name:obj.movie_credits.crew[i].title+" ("+new Date(obj.movie_credits.crew[i].release_date).getFullYear()+")",
-									id:obj.movie_credits.crew[i].id,
-									type:"movie",
-									poster:obj.movie_credits.crew[i].poster_path
-								}
+							{
+								name:obj.movie_credits.crew[i].title+" ("+new Date(obj.movie_credits.crew[i].release_date).getFullYear()+")",
+								id:obj.movie_credits.crew[i].id,
+								type:"movie",
+								poster:obj.movie_credits.crew[i].poster_path
+							}
 						}
 					}
 				}
@@ -416,26 +438,26 @@ module.exports={
 					for (var i in obj.tv_credits.cast)
 					{
 						res.tv_cast[res.tv_cast.length]=
-							{
-								name:obj.tv_credits.cast[i].name+" ("+new Date(obj.tv_credits.cast[i].first_air_date).getFullYear()+")",
-								id:obj.tv_credits.cast[i].id,
-								type:"tv",
-								poster:obj.tv_credits.cast[i].poster_path,
-								info:obj.tv_credits.cast[i].character+" ("+obj.tv_credits.cast[i].episode_count+")"
-							}
+						{
+							name:obj.tv_credits.cast[i].name+" ("+new Date(obj.tv_credits.cast[i].first_air_date).getFullYear()+")",
+							id:obj.tv_credits.cast[i].id,
+							type:"tv",
+							poster:obj.tv_credits.cast[i].poster_path,
+							info:obj.tv_credits.cast[i].character+" ("+obj.tv_credits.cast[i].episode_count+")"
+						}
 					}
 					obj.tv_credits.crew.sort(compare_date)
 					res.tv_crew=[]
 					for (var i in obj.tv_credits.crew)
 					{
 						res.tv_crew[res.tv_crew.length]=
-							{
-								name:obj.tv_credits.crew[i].name+" ("+new Date(obj.tv_credits.crew[i].first_air_date).getFullYear()+")",
-								id:obj.tv_credits.crew[i].id,
-								type:"tv",
-								poster:obj.tv_credits.crew[i].poster_path,
-								info:obj.tv_credits.crew[i].job
-							}
+						{
+							name:obj.tv_credits.crew[i].name+" ("+new Date(obj.tv_credits.crew[i].first_air_date).getFullYear()+")",
+							id:obj.tv_credits.crew[i].id,
+							type:"tv",
+							poster:obj.tv_credits.crew[i].poster_path,
+							info:obj.tv_credits.crew[i].job
+						}
 					}
 					res.tv_creator=[]
 					
@@ -444,23 +466,23 @@ module.exports={
 						if (obj.tv_credits.crew[i].job=="Creator")
 						{
 							res.tv_creator[res.tv_creator.length]=
-								{
-									name:obj.tv_credits.crew[i].name+" ("+new Date(obj.tv_credits.crew[i].first_air_date).getFullYear()+")",
-									id:obj.tv_credits.crew[i].id,
-									type:"tv",
-									poster:obj.tv_credits.crew[i].poster_path
-								}
+							{
+								name:obj.tv_credits.crew[i].name+" ("+new Date(obj.tv_credits.crew[i].first_air_date).getFullYear()+")",
+								id:obj.tv_credits.crew[i].id,
+								type:"tv",
+								poster:obj.tv_credits.crew[i].poster_path
+							}
 						}
 					}
 				}
-			default:
-			
+				default:
+
+			}
+
+			return res
+
 		}
-		
-		return res
-		
 	}
-}
 
 	function compare_date(m1, m2)
 	{

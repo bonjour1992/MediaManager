@@ -1,15 +1,18 @@
-var express = require('express')
+	var express = require('express')
 	var cookieParser = require('cookie-parser')
 	var bodyParser = require('body-parser')
 	var db = require('./db/mysql.js')
 	var crypto = require('sha1')
+	var md5 = require('MD5')
 	var uuid = require('node-uuid');
-var tmdb = require('./tmdb.js')
+	var tmdb = require('./tmdb.js')
+	var zip = require('./zip.js')
 	var mb = require('./musicbrainz.js')
+	var wiki = require('./wikipedia.js')
 	var util = require('./utils.js')
 	var config = require('./config.js')
 	module.exports = function () {
-	var app = express()
+		var app = express()
 		app.use(cookieParser())
 		app.use(bodyParser.json())
 		app.use(function (req, res, next) {
@@ -20,25 +23,25 @@ var tmdb = require('./tmdb.js')
 
 		this.tokens = {};
 
-	var build_token = function () {
-		var token = uuid.v4()
+		var build_token = function () {
+			var token = uuid.v4()
 			tokens[token] = Date.now() + 30 * 24 * 60 * 60 * 1000 //magic number everywhere
 			return token
-	}
-
-	var check_auth = function (req, res) {
-		if (req.cookies.token && req.cookies.user) {
-			if (this.tokens[req.cookies.token] > Date.now()) {
-				return true
-			}
 		}
 
-		res.status('403').json({
-			err : 'you need to be logged to perform this'
-		})
-		return false
+		var check_auth = function (req, res) {
+			if (req.cookies.token && req.cookies.user) {
+				if (this.tokens[req.cookies.token] > Date.now()) {
+					return true
+				}
+			}
 
-	}
+			res.status('403').json({
+				err : 'you need to be logged to perform this'
+			})
+			return false
+
+		}
 	//TODO search and destroy delete old token
 
 	var check_param = function (req, res, params) {
@@ -79,7 +82,6 @@ var tmdb = require('./tmdb.js')
 					db.list(req.cookies.user,[["artist",req.body.id],["type","album"]],
 						function (albums)
 						{
-							
 							var val = util.proper_property(info, "band")
 							for ( var r in val.releases)
 							{
@@ -93,46 +95,86 @@ var tmdb = require('./tmdb.js')
 									}
 								}
 							}
+							wiki.query("extracts&exintro=&explaintext=",val.name||"",function (ext) {
+								val.overview = ext.extract
+								wiki.query("images", val.name , function (imgs)
+								{
+									val.posters=[]
+									for ( var i in imgs.images)
+									{
+										var img = imgs.images[i].title.replace(/ /g,"_")
+										if ( img.substring(img.lastIndexOf("."))!=".svg" && img.substring(img.lastIndexOf("."))!=".ogg"&& img.substring(img.lastIndexOf("."))!=".php")
+										{
 
-							res.json(val)
+											var h = md5(img.substring(img.lastIndexOf(":")+1))
+											val.posters.push("https://upload.wikimedia.org/wikipedia/commons/"+h[0]+"/"+h[0]+h[1]+"/"+img.substring(img.lastIndexOf(":")+1))
+										}
+									}
+									res.json(val)	
+								},st_err(res,"Wikipedia"))
+
+
+							},st_err(res,"Wikipedia"))
+							
 						},st_err(res,"DB"))
 				}, st_err(res,"MB"))
 
 			} else if (req.body.type === "album") {
-					mb.query("release",req.body.id,"artists+recordings", function (info) {
-					res.json(util.proper_property(info, "album"))
+				mb.query("release",req.body.id,"artists+recordings", function (info) {
+					var val =util.proper_property(info, "album")
+
+					wiki.query("extracts&exintro=&explaintext=",val.name||"",function (ext) {
+								val.overview = ext.extract
+								wiki.query("images", val.name , function (imgs)
+								{
+									val.posters=[]
+									for ( var i in imgs.images)
+									{
+										var img = imgs.images[i].title.replace(/ /g,"_")
+										if ( img.substring(img.lastIndexOf("."))!=".svg" && img.substring(img.lastIndexOf("."))!=".ogg"&& img.substring(img.lastIndexOf("."))!=".php")
+										{
+
+											var h = md5(img.substring(img.lastIndexOf(":")+1))
+											val.posters.push("https://upload.wikimedia.org/wikipedia/commons/"+h[0]+"/"+h[0]+h[1]+"/"+img.substring(img.lastIndexOf(":")+1))
+										}
+									}
+									res.json(val)	
+								},st_err(res,"Wikipedia"))
+
+
+							},st_err(res,"Wikipedia"))
 				}, st_err(res,"MB"))
-				}
+			}
 			else if (req.body.type === "song") 
 			{
-					mb.query("recording",req.body.id,"artists+releases", function (info) {
+				mb.query("recording",req.body.id,"artists+releases", function (info) {
 					res.json(util.proper_property(info, "song"))
 				}, st_err(res,"MB"))
 			}
 			
 				else //tmdb is default
-			{
-				tmdb.query(req.body.type + "/" + req.body.id, config.append[req.body.type], function (info) {
-					var val = util.proper_property(info, req.body.type)
+				{
+					tmdb.query(req.body.type + "/" + req.body.id, config.append[req.body.type], function (info) {
+						var val = util.proper_property(info, req.body.type)
 						val.cast = val.cast || []
 						val.crew = val.crew || []
 						db.get_list_rating(val.cast.concat(val.crew).concat(val.director), req.cookies.user || 0, function (l_id) {
 							for (var i in val.cast) {
 								if (l_id[val.cast[i].id]) {
 									val.cast[i].rate = l_id[val.cast[i].id].rate
-										val.cast[i].file = l_id[val.cast[i].id].file
+									val.cast[i].file = l_id[val.cast[i].id].file
 								}
 							}
 							for (var i in val.crew) {
 								if (l_id[val.crew[i].id]) {
 									val.crew[i].rate = l_id[val.crew[i].id].rate
-										val.crew[i].file = l_id[val.crew[i].id].file
+									val.crew[i].file = l_id[val.crew[i].id].file
 								}
 							}
 							for (var i in val.director) {
 								if (l_id[val.director[i].id]) {
 									val.director[i].rate = l_id[val.director[i].id].rate
-										val.director[i].file = l_id[val.director[i].id].file
+									val.director[i].file = l_id[val.director[i].id].file
 								}
 							}
 							db.get_watchlist(req.body.type,req.body.id,req.cookies.user ,function (watchlist)
@@ -146,33 +188,33 @@ var tmdb = require('./tmdb.js')
 
 						})
 
-				},st_err(res,"TMDB"))
+					},st_err(res,"TMDB"))
+				}
 			}
-		}
-	
-	})
+
+		})
 
 	app.post('/get_rating', function (req, res) {
 		if (check_param(req, res, ['id', 'type'])) {
 			db.get_rating(req.body.type, req.body.id, function (rating) {
 				var rated = false || !req.cookies.user
-					for (var i in rating) {
+				for (var i in rating) {
 
-						if (rating[i].id == req.cookies.user) {
-							rated = true
-						}
+					if (rating[i].id == req.cookies.user) {
+						rated = true
 					}
-					if ((req.body.type == "movie" || req.body.type == "album"  || req.body.type == "band"  || req.body.type == "song") && !rated) {
-						rating.push({
-							id : req.cookies.user,
-							name : req.cookies.username,
-							info : 0,
-							type : 'user'
-						})
-					}
-					res.json(rating)
+				}
+				if ((req.body.type == "movie" || req.body.type == "album"  || req.body.type == "band"  || req.body.type == "song") && !rated) {
+					rating.push({
+						id : req.cookies.user,
+						name : req.cookies.username,
+						info : 0,
+						type : 'user'
+					})
+				}
+				res.json(rating)
 			},st_err(res,"DB"))
-			}
+		}
 	})
 
 	app.post('/table', function (req, res) {
@@ -204,15 +246,15 @@ var tmdb = require('./tmdb.js')
 				db.has_file(req.body.type, req.body.id, st_json(res),st_err(res,"DB"))
 			}
 			else{
-			db.get_file(req.body.type, req.body.id, function (result) {
-				if (result) {
-					res.json(result)
-				} else {
-					res.status('404').json({
-						err : " no file found for this media"
-					})
-				}
-			},st_err(res,"DB"))
+				db.get_file(req.body.type, req.body.id, function (result) {
+					if (result) {
+						res.json(result)
+					} else {
+						res.status('404').json({
+							err : " no file found for this media"
+						})
+					}
+				},st_err(res,"DB"))
 			}
 		}
 	})
@@ -226,17 +268,46 @@ var tmdb = require('./tmdb.js')
 				}
 				mb.search("artist",req.body.text, function (res_mb)
 				{
-				for (var i in res_mb) {
-					//console.log(res_mb[i])
-					//console.log(util.proper_property(res_mb[i], "band"))
-					to_send.push(util.proper_property(res_mb[i], "band"))
-				}
-				res.json(to_send)
+					for (var i in res_mb.artists) {
+						if ( i <10)
+						{
+
+							to_send.push(util.proper_property(res_mb.artists[i], "band"))
+						}
+					}
+					/*mb.search("release",req.body.text, function (res_mb)
+					{
+						for (var i in res_mb) {
+							if ( i <10)
+							{
+
+								to_send.push(util.proper_property(res_mb[i], "album"))
+							}
+						}
+
+
+
+						mb.search("recording",req.body.text, function (res_mb)
+						{
+							for (var i in res_mb) {
+								if ( i <20)
+								{
+
+									to_send.push(util.proper_property(res_mb[i], "song"))
+								}
+							}
+*/
+							res.json(to_send)
+							/*
+						},function (err){
+							res.json(to_send)
+						})},function (err){
+							res.json(to_send)
+						})*/
 				},function (err){
-				res.json(to_send)
-				
-				//st_err(res,"MB")()
+					res.json(to_send)
 				})
+
 			},st_err(res,"TMDB"))
 		}
 	})
@@ -245,12 +316,12 @@ var tmdb = require('./tmdb.js')
 		{
 			if (req.body.state)
 			{
-			db.add_watchlist(req.body.type,req.body.id,req.cookies.user,st_ok(res),st_err(res,"DB"))
+				db.add_watchlist(req.body.type,req.body.id,req.cookies.user,st_ok(res),st_err(res,"DB"))
 			}
 			else
 			{
 				db.del_watchlist(req.body.type,req.body.id,req.cookies.user,st_ok(res),st_err(res,"DB"))
-				}
+			}
 		}
 	})
 	app.post('/playlist',function(req,res)
@@ -260,10 +331,21 @@ var tmdb = require('./tmdb.js')
 			db.playlist(req.body.type,req.body.id,st_json(res),st_err(res,"DB"))
 		}
 	})
+	app.get('/zip_playlist',function(req,res)
+	{
+
+			db.playlist(req.query.type,req.query.id,function (pl)
+			{
+				zip.zip(pl,"song",res)
+
+			}
+				,st_err(res,"DB"))
+			
+	})
 	app.post('/list', function (req, res) {
 		var param_ok = true
-			for (var f in req.body.filters) {
-				var ok = false
+		for (var f in req.body.filters) {
+			var ok = false
 					//valid all parameter here
 					var valid_filter = ["type","watchlist","named","file","actor", "director", "keyword", "order", "genre", "nation", "language", "companie", "rated", "unrated", "year", "rate"]
 					if (valid_filter.indexOf(req.body.filters[f][0]) >= 0) {
@@ -275,21 +357,21 @@ var tmdb = require('./tmdb.js')
 						}
 					}
 					param_ok &= ok
-			}
+				}
 
-			if (param_ok) {
-				db.list(req.cookies.user || 0, req.body.filters, function (list) {
-					res.json({
-						name : "list of something .... thx",
-						content : list
+				if (param_ok) {
+					db.list(req.cookies.user || 0, req.body.filters, function (list) {
+						res.json({
+							name : "list of something .... thx",
+							content : list
+						})
+					},st_err(res,"DB"))
+				} else {
+					res.status('400').json({
+						err : "parameter not well formed"
 					})
-				},st_err(res,"DB"))
-			} else {
-				res.status('400').json({
-					err : "parameter not well formed"
-				})
-			}
-	})
+				}
+			})
 
 	return app;
 }
@@ -300,8 +382,8 @@ function st_err(res,elem)
 	return function (err)
 	{
 		res.status('500').json({
-						err :elem+" : "+ err
-					})
+			err :elem+" : "+ err
+		})
 	}
 }
 

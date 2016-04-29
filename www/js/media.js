@@ -45,7 +45,7 @@ function media(type,id)
 	core.listener("info.songs",b_list_comma(info,"Songs : "))	
 	var p_button = info._add_elem("p")
 	core.listener("info.site",b_button(p_button,"Offical Site"))
-	core.listener("info.id",b_button(p_button,"TMDB","https://www.themoviedb.org/"+type+"/"))
+	core.listener("info.tmdb_id",b_button(p_button,"TMDB","https://www.themoviedb.org/"+type+"/"))
 	core.listener("info.imdb",b_button(p_button,"IMDB","http://www.imdb.com/"+(type=="person"?"name":"title")+"/"))
 	
 	
@@ -70,5 +70,6 @@ function media(type,id)
 	core.listener("file.path",b_button("panel-body-file","download","data"))
 	core.listener("file.available",b_panel(panel,"file","file",b_append_tag({},"p","Files availables : ")))
 	core.listener("file.available",b_command("panel-body-file","Listen",function () { return function() {core.request("playlist",{id:id,type:type},"playlist")}},"data"))
+	core.listener("file.available",b_button("panel-body-file","Download","../api/zip_playlist?id="+id+"&type="+type))
 	core.listener("playlist",b_playlist_audio())
 }

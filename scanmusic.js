@@ -40,7 +40,7 @@ function save_music(i){
 walk(config.music_folder, function(err, results) {
 if (err) throw err;
 res=results
-setInterval(process,300)
+setInterval(process,1000)
 	
 
 })
@@ -69,6 +69,7 @@ function run_cmd(cmd, args, callBack) {
 }
 
 function eyed3(f, cb) {
+	
 	run_cmd("eyeD3", [f.file, "--color"], function (res) {
 		console.log(res)
 		var info = {
@@ -113,5 +114,6 @@ function eyed3(f, cb) {
 			}
 			cb(info)
 	});
+	
 }
 

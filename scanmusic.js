@@ -71,7 +71,6 @@ function run_cmd(cmd, args, callBack) {
 function eyed3(f, cb) {
 	
 	run_cmd("eyeD3", [f.file, "--color"], function (res) {
-		console.log(res)
 		var info = {
 			file :  f.file.substring(f.file.lastIndexOf("/") + 1),
 			folder :  f.file.substring(config.music_folder.length-6,f.file.lastIndexOf("/") +1),

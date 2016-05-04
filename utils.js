@@ -24,6 +24,7 @@ module.exports={
 		{
 			case "band":
 			res.name=obj.name
+			res.info= obj.disambiguation||(obj.type||"") +" "+(obj.genre||"")
 			if (obj["life-span"] )
 			{
 				res.birthday=obj["life-span"]["begin"]
@@ -62,7 +63,7 @@ module.exports={
 					name :obj['artist-credit'][0].artist.name,
 					id : obj['artist-credit'][0].artist.id,
 					type : "band"}
-					res.info=obj['artist-credit'][0].artist.name
+					res.info="album by "+obj['artist-credit'][0].artist.name
 
 					res.songs=[]
 					for ( var r in obj.media[0].tracks)
@@ -85,7 +86,7 @@ module.exports={
 						name :obj['artist-credit'][0].artist.name,
 						id : obj['artist-credit'][0].artist.id,
 						type : "band"}
-						res.info=obj['artist-credit'][0].artist.name
+						res.info="song by "+obj['artist-credit'][0].artist.name
 						res.releases=[]
 						if (obj["releases"])
 						{

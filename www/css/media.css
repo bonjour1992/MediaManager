@@ -73,8 +73,26 @@ font-weight: bold;
 }
 
 #playlist{
-max-height:200px;
-float:right;
-width : 500px;
+max-height:300px;
+width :30%;
+overflow: scroll;
+}
+
+.panel-head-right{
+	float :right;
+}
+
+#ap-title{
+	text-align: center;
+	display : inline;
+	margin-right: 50px;
+	margin-left: 50px;
+
+}
+
+#lyric{
+	float : right;
+	max-height:300px;
+width :65%;
 overflow: scroll;
 }

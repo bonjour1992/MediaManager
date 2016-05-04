@@ -207,14 +207,14 @@ function b_button(elem, name, prefix) {
 }
 
 function b_command(elem, name,command,prefix) {
-	prefix = prefix || ""
+
 		return function (data) {
 		if (typeof elem === "string") {
 			elem = _get(elem)
 		}
 		elem._add_elem("a", {
 			class : "btn btn-info"
-		})._write(name).addEventListener("click",command( prefix+data))
+		})._write(name).addEventListener("click",command( prefix?prefix+data:data))
 	}
 }
 
@@ -433,89 +433,7 @@ function b_playlist_audio()
 {
 	return function (data)
 	{
-		var p
-		var  n= true
-		// playlist
-		if (!_get("playlist"))
-		{
-		 
-		 b_panel(_get("player")._clean(),"player-audio","Player")()
-		 
-		 p=_get("panel-body-player-audio")._add_elem("ul",{id:"playlist"})
-		
-		
-		//player
-		_get("player-audio").childNodes[0].childNodes[0]._clean()._write("Playing : "+data[0].name)
-		_get("panel-body-player-audio")._add_elem("audio",{id:"audio-player",controls:true,autoplay:true})._add_elem("source",{src:"/data"+data[0].folder+data[0].filename,type:"audio/mpeg"})
-			_get("audio-player").addEventListener("ended",function(event){
-			 var pl = _get("playlist")
-			 var a =-1
-				 for ( var s =0;s<pl.childNodes.length;s++)
-				 {
-					if (pl.childNodes[s].childNodes[0].getAttribute("class")=="playing")
-					{
-						a=s
-					}
-					 pl.childNodes[s].childNodes[0].setAttribute("class","playable")
-				 }
-				 if ( a== pl.childNodes.length)
-				 {
-					 a=0
-				 }
-				 else{
-					 a=a+1
-					 }
-				 var n =pl.childNodes[a].childNodes[0]
-				 n.setAttribute("class","playing")
-				_get("player-audio").childNodes[0].childNodes[0]._clean()._write("Playing : "+n.innerText)
-				 var ap =_get("audio-player")
-				 ap.childNodes[0].setAttribute("src",n.getAttribute("href"))
-				 ap.load()
-				 ap.play()
-			})
-			b_command("panel-body-player-audio","Shuffle",function(){return function (){
-				var ul = _get("playlist")
-					for (var i = ul.children.length; i >= 0; i--) {
-					ul.appendChild(ul.children[Math.random() * i | 0]);
-					}
-			}})()
-			b_command("panel-body-player-audio","Quitter",function (){ return function () {_get("player")._clean()}})()
-	}
-	else {
-		p=_get("playlist")
-		n=false
-	}
-			 for (var s in data )
-		 {
-			 var e
-			 if (s!=0 || !n)
-			 {
-			 e=p._add_elem("li")._add_elem("a",{href:"/data"+data[s].folder+data[s].filename,class:"playable"})._write(data[s].name)
-			 }
-			 else{
-				 e=p._add_elem("li")._add_elem("a",{href:"/data"+data[s].folder+data[s].filename,class:"playing"})._write(data[s].name)
-			 }
-			 e.addEventListener("click",function (event)
-			 {
-				 event.preventDefault()
-				 console.log(event)
-				 var n = event.target
-				 console.log(n)
-				 var pl = _get("playlist")
-				 for ( var s =0;s<pl.childNodes.length;s++)
-				 {
-
-					 pl.childNodes[s].childNodes[0].setAttribute("class","playable")
-				 }
-				 n.setAttribute("class","playing")
-				 
-				 var ap =_get("audio-player")
-				 ap.childNodes[0].setAttribute("src",n.getAttribute("href"))
-				 _get("player-audio").childNodes[0].childNodes[0]._clean()._write("Playing : "+n.innerText)
-				 ap.load()
-				 ap.play()
-			 })
-		 }
+		player.add(data)
 	}
 }
 
@@ -535,5 +453,17 @@ function b_switch(elem,name,func)
 		}
 		$("#cb-"+core.content.id).bootstrapSwitch()
 		$("#cb-"+core.content.id).on("switchChange.bootstrapSwitch",function (event,state){func(state)})
+	}
+}
+
+function b_print_multi_line(elem )
+{
+	elem._clean()
+	return function (data)
+	{
+		for (var i in data)
+		{
+			elem._add_elem("p")._write(data[i])
+		}
 	}
 }

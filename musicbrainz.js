@@ -62,8 +62,14 @@ module.exports = {
             })
             res.on('end',function()
             {
-               success(JSON.parse(st))
-                    //console.log(st)
+                try {
+    success(JSON.parse(st))
+}
+catch (e) {
+failure(e)
+}
+              
+                    
                 })
         })
         req.on("error",function(e)

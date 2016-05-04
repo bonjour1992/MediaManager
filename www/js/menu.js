@@ -19,7 +19,8 @@ function build_menu()
 		{name:"Director",link:"#table&pref&-1&director&5"}]},
 		{name:"Music",content:
 		[{name:"Bands",link:"#list&order&name&asc&type&band"},
-		{name:"Albums",link:"#list&order&name&asc&type&album"}]}]
+		{name:"Albums",link:"#list&order&name&asc&type&album"},
+		{name:"Playlist",link:"#list&order&name&asc&type&named"}]}]
 	
 	
 	//build menu left

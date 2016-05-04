@@ -84,7 +84,7 @@ module.exports = {
 				switch (filters[f][0])
 				{
 					case "type":
-					where+=" and id like '"+filters[f][1][0]+"%' "
+					where+=" and id like '"+db_id(filters[f][1],"")+"%' "
 					break
 					case "rated":
 					where += " and id in ( select media from rating where user='" + filters[f][1] + "') "
@@ -116,7 +116,7 @@ module.exports = {
 					where += "and id in (select object from link where type='album' and properties='a" + filters[f][1] + "') "
 					break
 					case "named":
-					where += "and id in (select object from link where type='list'  and properties='lc"+filters[f][1]+"') "
+					where += "and id in (select object from link where type like 'list%'  and properties='z"+filters[f][1]+"') "
 					break
 					case "watchlist":
 					where += "and id in (select object from link where type='watchlist' and properties='u"+filters[f][1]+"') "
@@ -292,7 +292,7 @@ module.exports = {
 	},
 	playlist : function (type,id ,cb, err)
 	{
-		exec_query("select 'song' as type , substring(object,2) as id ,name, filename, folder from link join file on object=media join media on object= id where ( type='artist' or type='album' or type='playlist' ) and properties='"+db_id(type,id)+"' order by properties,value",cb,err)
+		exec_query("select 'song' as type , substring(object,2) as id ,name,artist, concat('/data',folder,filename) as filename from link join file on object=media join media on object= id  join  (select distinct name as artist,object as s  from media join link on id=properties where type='artist' ) ta on s=id  where( type='artist' or type='album' or type='list-song' ) and properties='"+db_id(type,id)+"' order by properties,value",cb,err)
 	},
 	play_rated : function (user,rate,cb,err)
 	{
@@ -308,17 +308,42 @@ module.exports = {
 		{
 			exec_query("update media set date='"+date+"'  where id='"+db_id(type,id)+"'")
 		}		
+	},
+	save_playlist:function(name,list,cb,err)
+	{
+		exec_query("insert into media values ('z-music-"+name+"','"+name+"','','') ")
+		exec_query("delete from link where type='list-song' and properties='z-music-"+name+"'", function (){
+		for (var i in list)
+		{
+			console.log("insert into link values ('"+db_id("song",list[i].id)+"','z-music-"+name+"','list-song','"+i+"') ")
+			exec_query("insert into link values ('"+db_id("song",list[i].id)+"','z-music-"+name+"','list-song','"+i+"') ")
+		} })
+		if (cb)
+		{
+			cb()
+		}
 	}
 
 }
 
 function db_id(type, id) {
-	return type[0] + id
+
+	var pre 
+	switch ( type)
+	{
+		case "named":
+		pre="z"
+		break
+		default :
+		pre= type[0]
+	}
+
+	return pre + id
 }
 
 function t_type()
 {
-	return {a:"album",m:"movie",b:"band"}
+	return {a:"album",m:"movie",b:"band",s:"song",z:"named"}
 }
 
 function noop() {}

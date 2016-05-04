@@ -69,7 +69,7 @@ function media(type,id)
 	core.listener("file.path",b_cond(audio_check,b_command("panel-body-file","listen",b_player_audio,"data")))
 	core.listener("file.path",b_button("panel-body-file","download","data"))
 	core.listener("file.available",b_panel(panel,"file","file",b_append_tag({},"p","Files availables : ")))
-	core.listener("file.available",b_command("panel-body-file","Listen",function () { return function() {core.request("playlist",{id:id,type:type},"playlist")}},"data"))
+	core.listener("file.available",b_command("panel-body-file","Listen",function () { return function() {core.request("playlist",{id:id,type:type},"playlist")}}))
 	core.listener("file.available",b_button("panel-body-file","Download","../api/zip_playlist?id="+id+"&type="+type))
 	core.listener("playlist",b_playlist_audio())
 }

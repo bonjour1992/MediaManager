@@ -11,6 +11,8 @@
 	var wiki = require('./wikipedia.js')
 	var util = require('./utils.js')
 	var config = require('./config.js')
+	var lyric = require('./lyric.js')
+
 	module.exports = function () {
 		var app = express()
 		app.use(cookieParser())
@@ -275,13 +277,13 @@
 							to_send.push(util.proper_property(res_mb.artists[i], "band"))
 						}
 					}
-					/*mb.search("release",req.body.text, function (res_mb)
+					mb.search("release",req.body.text, function (res_mb)
 					{
-						for (var i in res_mb) {
+						for (var i in res_mb.releases) {
 							if ( i <10)
 							{
 
-								to_send.push(util.proper_property(res_mb[i], "album"))
+								to_send.push(util.proper_property(res_mb.releases[i], "album"))
 							}
 						}
 
@@ -289,21 +291,21 @@
 
 						mb.search("recording",req.body.text, function (res_mb)
 						{
-							for (var i in res_mb) {
+							for (var i in res_mb.recordings) {
 								if ( i <20)
 								{
 
-									to_send.push(util.proper_property(res_mb[i], "song"))
+									to_send.push(util.proper_property(res_mb.recordings[i], "song"))
 								}
 							}
-*/
+
 							res.json(to_send)
-							/*
+							
 						},function (err){
 							res.json(to_send)
 						})},function (err){
 							res.json(to_send)
-						})*/
+						})
 				},function (err){
 					res.json(to_send)
 				})
@@ -331,6 +333,13 @@
 			db.playlist(req.body.type,req.body.id,st_json(res),st_err(res,"DB"))
 		}
 	})
+		app.post('/save_playlist',function(req,res)
+	{
+		if (check_param(req,res,['name','list']))
+		{
+			db.save_playlist(req.body.name,req.body.list,st_ok(res),st_err(res,"DB"))
+		}
+	})
 	app.get('/zip_playlist',function(req,res)
 	{
 
@@ -340,10 +349,11 @@
 
 			}
 				,st_err(res,"DB"))
-			
+
 	})
 	app.post('/list', function (req, res) {
 		var param_ok = true
+		var named
 		for (var f in req.body.filters) {
 			var ok = false
 					//valid all parameter here
@@ -356,6 +366,10 @@
 							req.body.filters[f][1] = req.cookies.user
 						}
 					}
+					if (req.body.filters[f][0]=="named")
+					{
+						named=req.body.filters[f][1]
+					}
 					param_ok &= ok
 				}
 
@@ -363,7 +377,9 @@
 					db.list(req.cookies.user || 0, req.body.filters, function (list) {
 						res.json({
 							name : "list of something .... thx",
-							content : list
+							content : list,
+							named :named?{playable :  (list.length>0 && list[0].type=="song"),
+							id:named}:false
 						})
 					},st_err(res,"DB"))
 				} else {
@@ -372,7 +388,13 @@
 					})
 				}
 			})
-
+		app.post('/lyric',function (req,res)
+		{
+			if (check_param(req,res,['file']))
+		{
+			lyric.lyric(req.body.file,st_json(res))
+		}
+		})
 	return app;
 }
 

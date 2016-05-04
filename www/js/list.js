@@ -12,7 +12,7 @@ var arg_number={
 	rate:3,
 	director:2,
 	actor:2,
-	file:2,
+	file:1,
 	named:2,
 	watchlist:2
 }
@@ -55,5 +55,8 @@ function list()
 	core.listener("list.content.length",b_append(head._add_elem("p"),"number of element : "))
 	core.listener("list.name",b_append(head))
 	core.listener("list.name",b_set_title())
-	core.listener("list.add",b_panel(main,"Add","Add",function () {}))
+	core.listener("list.named",b_cond(function(data){return data.playable}, b_command(head,"Listen",function (named) { return function() {core.request("playlist",{id:named.id,type:"named"},"playlist")}})))
+	//core.listener("list.named",b_button(head,"Download","../api/zip_playlist?id="+id+"&type="+type))
+	//core.listener("list.add",b_panel(main,"Add","Add",function () {}))
+	core.listener("playlist",b_playlist_audio())
 }

@@ -12,6 +12,9 @@
 	var util = require('./utils.js')
 	var config = require('./config.js')
 	var lyric = require('./lyric.js')
+	var kickass = require('./kickass.js')
+var torrent = require('./torrent.js')
+
 
 	module.exports = function () {
 		var app = express()
@@ -353,11 +356,11 @@
 	})
 	app.post('/list', function (req, res) {
 		var param_ok = true
-		var named
+		var named,genre
 		for (var f in req.body.filters) {
 			var ok = false
 					//valid all parameter here
-					var valid_filter = ["type","watchlist","named","file","actor", "director", "keyword", "order", "genre", "nation", "language", "companie", "rated", "unrated", "year", "rate"]
+					var valid_filter = ["type","watchlist","named","file","actor", "director", "keyword", "order", "genre", "nation", "language", "companie", "rated", "unrated", "year", "rate","like","id_like"]
 					if (valid_filter.indexOf(req.body.filters[f][0]) >= 0) {
 						ok = true
 					}
@@ -370,6 +373,10 @@
 					{
 						named=req.body.filters[f][1]
 					}
+					if (req.body.filters[f][0]=="genre")
+					{
+						genre=req.body.filters[f][1]
+					}
 					param_ok &= ok
 				}
 
@@ -378,8 +385,9 @@
 						res.json({
 							name : "list of something .... thx",
 							content : list,
-							named :named?{playable :  (list.length>0 && list[0].type=="song"),
-							id:named}:false
+							playable:genre?{playable :  (list.length>0 && list[0].type=="song"),
+							id:genre,type:"genre"}:named?{playable :  (list.length>0 && list[0].type=="song"),
+							id:named,type:"named"}:false
 						})
 					},st_err(res,"DB"))
 				} else {
@@ -394,6 +402,28 @@
 		{
 			lyric.lyric(req.body.file,st_json(res))
 		}
+		})
+		app.post('/torrent_search',function (req,res)
+		{
+			if (check_param(req,res,['name','id','type']))
+			{
+				switch (req.body.type)
+				{
+					case "band":
+					kickass.search("category:music "+req.body.name,req.body.id,req.body.type,st_json(res),st_err(res,"kickass"))
+					break
+				}
+
+			}
+		})
+		app.post('/download',function (req,res)
+		{
+			if (check_param(req,res,['magnet','id','type','hash']))
+			{
+				torrent.addTorrent(req.body.magnet,req.body.type)
+				db.torrent(req.body.type,req.body.id,req.body.hash)
+				st_ok(res)()
+			}
 		})
 	return app;
 }

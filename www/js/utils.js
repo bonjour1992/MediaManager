@@ -58,3 +58,9 @@ function shuffleArray(array) {
     }
     return array;
 }
+
+    function s_to_minsec(t)
+    {
+        t=Math.floor(t)
+        return Math.floor(t/60)+":"+((t%60<10)?"0"+t%60:t%60)
+    }

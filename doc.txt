@@ -15,5 +15,5 @@ a : album
 s : song
 
 global
-lc : list named
+z : list named
 

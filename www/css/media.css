@@ -1,5 +1,5 @@
 #name {
-font-size: 200%;
+	font-size: 200%;
 }
 
 #panel-top{
@@ -42,10 +42,11 @@ font-size: 200%;
 	height:330px;
 	position: relative;
 	overflow:hidden;
+	border-style: groove;
 }
 
 .star-rating{
-		display : inline;
+	display : inline;
 }
 
 .cover-text{
@@ -65,17 +66,17 @@ font-size: 200%;
 }
 
 .bootstrap-switch-container{
-height:2em;
+	height:2em;
 }
 
 .playing{
-font-weight: bold;
+	font-weight: bold;
 }
 
 #playlist{
-max-height:300px;
-width :30%;
-overflow: scroll;
+	max-height:350px;
+	width :30%;
+	overflow: scroll;
 }
 
 .panel-head-right{
@@ -85,14 +86,16 @@ overflow: scroll;
 #ap-title{
 	text-align: center;
 	display : inline;
-	margin-right: 50px;
-	margin-left: 50px;
 
 }
 
 #lyric{
 	float : right;
-	max-height:300px;
-width :65%;
-overflow: scroll;
+	max-height:390px;
+	width :65%;
+	overflow: scroll;
+}
+
+.span-tab{
+	margin-right: 30px;
 }

@@ -121,6 +121,12 @@ module.exports = {
 					case "watchlist":
 					where += "and id in (select object from link where type='watchlist' and properties='u"+filters[f][1]+"') "
 					break
+					case "like":
+					where +=" and name like '"+filters[f][1]+"%' "
+					break
+					case "id_like":
+					where +=" and id like '"+filters[f][1]+"%' "
+					break				
 					default: 
 					where += " and id in (select object from link where properties='" + filters[f][0][0] + filters[f][1] + "') "
 				}
@@ -206,7 +212,7 @@ module.exports = {
 
 		//media
 		if (info.id) {
-			exec_query("insert into media values('" + db_id(type, info.id) + "','" + mysql_real_escape_string(info.title || info.name || info.id) + "','" + (info.release_date || info.first_air_date || info.birth_date || "") + "','" + (info.poster_path || info.profile_path || "") + "')")
+			exec_query("insert into media values('" + db_id(type, info.id) + "','" + mysql_real_escape_string(info.title || info.name || info.id) + "','" + (info.release_date || info.first_air_date || info.birth_date || (info.year+"-01-01")||"") + "','" + (info.poster_path || info.profile_path ||mysql_real_escape_string("data"+info.folder+"Folder.jpg")|| "") + "')")
 			//credits
 			if (info.credits) {
 				for (var i in info.credits.cast) {
@@ -257,14 +263,24 @@ module.exports = {
 			if (info.vote_average) {
 				exec_query("insert into rating values('0','" + db_id(type, info.id) + "','" + info.vote_average + "','') on duplicate key update rate='" + info.vote_average + "'")
 			}
+
+			info.album_id = info.album_id||"-"+info.album
+			info.artist_id = info.artist_id ||"-"+info.artist
+
 			if (info.album_id ){
 				exec_query("insert into link values('" + db_id(type, info.id) + "','" + db_id("album",info.album_id) + "','album','"+ (1*info.disc*1000+1*info.track)+"')")
 				exec_query(" insert into media values('"+db_id('album',info.album_id)+"','"+ mysql_real_escape_string(info.album)+"','"+info.year+"-01-01','data"+info.folder+"Folder.jpg')")
 				exec_query("insert into link values('" + db_id('album',info.album_id) + "','" + db_id("band",info.artist_id) + "','artist','')")
 			}
+
 			if (info.artist_id ){
 				exec_query("insert into link values('" + db_id(type, info.id) + "','" + db_id("band",info.artist_id) + "','artist','"+info.album_id+"-"+ (1*info.disc*1000+1*info.track)+"')")
 				exec_query("insert into media values('"+db_id('band',info.artist_id)+"','"+ mysql_real_escape_string(info.artist)+"','','')")
+			}
+			if (info.genre_id)
+			{
+				exec_query("insert into link values('" + db_id(type, info.id) + "','gm"+info.genre_id + "','genre-music','')")
+				exec_query("insert into media values('gm"+info.genre_id+"','"+ info.genre+"','','')")
 			}
 
 		}
@@ -292,11 +308,11 @@ module.exports = {
 	},
 	playlist : function (type,id ,cb, err)
 	{
-		exec_query("select 'song' as type , substring(object,2) as id ,name,artist, concat('/data',folder,filename) as filename from link join file on object=media join media on object= id  join  (select distinct name as artist,object as s  from media join link on id=properties where type='artist' ) ta on s=id  where( type='artist' or type='album' or type='list-song' ) and properties='"+db_id(type,id)+"' order by properties,value",cb,err)
+		exec_query("select distinct 'song' as type , substring(object,2) as id ,name,artist, concat('/data',folder,filename) as filename from link join file on object=media join media on object= id  join  (select distinct name as artist,object as s  from media join link on id=properties where type='artist' ) ta on s=id  where  (( type='artist' or type='album' or type='list-song' or type='genre-music' ) and properties='"+db_id(type,id)+"') or (object='"+db_id("song",id)+"') order by properties,value",cb,err)
 	},
 	play_rated : function (user,rate,cb,err)
 	{
-		exec_query("select 'song' as type , substring(id,2) as id ,name, filename, folder from rating natural join file  join media on media= id where rate>='"+rate+"' order by rand()",cb,err)
+		exec_query("select  'song' as type , substring(id,2) as id ,name, filename, folder from rating natural join file  join media on media= id where rate>='"+rate+"' order by rand()",cb,err)
 	},
 	upd_media : function(type,id,date,img,cb,err)
 	{
@@ -313,15 +329,18 @@ module.exports = {
 	{
 		exec_query("insert into media values ('z-music-"+name+"','"+name+"','','') ")
 		exec_query("delete from link where type='list-song' and properties='z-music-"+name+"'", function (){
-		for (var i in list)
-		{
-			console.log("insert into link values ('"+db_id("song",list[i].id)+"','z-music-"+name+"','list-song','"+i+"') ")
-			exec_query("insert into link values ('"+db_id("song",list[i].id)+"','z-music-"+name+"','list-song','"+i+"') ")
-		} })
+			for (var i in list)
+			{
+				exec_query("insert into link values ('"+db_id("song",list[i].id)+"','z-music-"+name+"','list-song','"+i+"') ")
+			} })
 		if (cb)
 		{
 			cb()
 		}
+	},
+	torrent:function (type,id,hash)
+	{
+		exec_query("insert into link values('"+db_id(type,id)+"','t"+hash+"','torrent','"+type+"')")
 	}
 
 }
@@ -343,7 +362,7 @@ function db_id(type, id) {
 
 function t_type()
 {
-	return {a:"album",m:"movie",b:"band",s:"song",z:"named"}
+	return {a:"album",m:"movie",b:"band",s:"song",z:"named",g:"genre"}
 }
 
 function noop() {}

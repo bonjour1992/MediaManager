@@ -1,10 +1,10 @@
 var fs = require('fs');
 var path = require('path');
 var config = require('./config.js')
-	var db = require('./db/mysql.js')
-	
-	var res 
-	var walk = function (dir, done) {
+var db = require('./db/mysql.js')
+
+var res 
+var walk = function (dir, done) {
 	var results = [];
 	fs.readdir(dir, function (err, list) {
 		if (err)
@@ -22,7 +22,10 @@ var config = require('./config.js')
 							done(null, results);
 					});
 				} else {
-					results.push({file:file,size:stat.size});
+					if (config.audio_file.indexOf(file.substring(file.length - 4)) >= 0)
+					{
+						results.push({file:file,size:stat.size});
+					}
 					if (!--pending)
 						done(null, results);
 				}
@@ -38,9 +41,9 @@ function save_music(i){
 }
 
 walk(config.music_folder, function(err, results) {
-if (err) throw err;
-res=results
-setInterval(process,1000)
+	if (err) throw err;
+	res=results
+	setInterval(process,1000)
 	
 
 })
@@ -77,41 +80,41 @@ function eyed3(f, cb) {
 			size : f.size
 		}
 		res = res.replace(/1m/g, ' ').replace(/0m/g, ' ').replace(/[^a-z0-9 ,.?!\n /-]/ig, '').split("\n")
-			for (var i in res) {
+		for (var i in res) {
 
-				if (res[i].indexOf('title') >= 0) {
-					info.title = res[i].substring(8, res[i].lastIndexOf('artist') - 1)
-					info.artist = res[i].substring( res[i].lastIndexOf('artist')+8)
-				}
-				if (res[i].indexOf('album') >= 0 &&res[i].indexOf('year') >= 0) {
-					info.album = res[i].substring(8, res[i].lastIndexOf('year') - 1)
-					info.year = res[i].substring( res[i].lastIndexOf('year') +6)
-				}
-				if (res[i].indexOf('track') >= 0 && res[i].indexOf('/') >= 0  ) {
-					info.track = res[i].substring(8, res[i].indexOf('/') )
-				}
-				if (res[i].indexOf('genre') >= 0 )
-				{
-					info.genre = res[i].substring( res[i].lastIndexOf('genre') +7 ,res[i].indexOf('id')-1)
-					info.genre_id= res[i].substring(res[i].indexOf('id')+3)
-				}
-				if (res[i].indexOf('disc') >= 0 ) {
-					info.disc= res[i].substring(7, res[i].indexOf('/') )
-				}				
-				if (res[i].indexOf('Description MusicBrainz Album Id') >= 0) {
-
-					info.album_id = res[+i + 1]
-				}
-				if (res[i].indexOf('Description MusicBrainz Album Artist Id') >= 0) {
-
-					info.artist_id = res[+i + 1]
-				}
-				if (res[i].indexOf('Unique File ID  http//musicbrainz.org') >= 0) {
-					info.id = res[i].substring(39)
-				}
-
+			if (res[i].indexOf('title') >= 0) {
+				info.title = res[i].substring(8, res[i].lastIndexOf('artist') - 1)
+				info.artist = res[i].substring( res[i].lastIndexOf('artist')+8)
 			}
-			cb(info)
+			if (res[i].indexOf('album') >= 0 &&res[i].indexOf('year') >= 0) {
+				info.album = res[i].substring(8, res[i].lastIndexOf('year') - 1)
+				info.year = res[i].substring( res[i].lastIndexOf('year') +6)
+			}
+			if (res[i].indexOf('track') >= 0 && res[i].indexOf('/') >= 0  ) {
+				info.track = res[i].substring(8, res[i].indexOf('/') )
+			}
+			if (res[i].indexOf('genre') >= 0 )
+			{
+				info.genre = res[i].substring( res[i].lastIndexOf('genre') +7 ,res[i].indexOf('id')-1)
+				info.genre_id= res[i].substring(res[i].indexOf('id')+3)
+			}
+			if (res[i].indexOf('disc') >= 0 ) {
+				info.disc= res[i].substring(7, res[i].indexOf('/') )
+			}				
+			if (res[i].indexOf('Description MusicBrainz Album Id') >= 0) {
+
+				info.album_id = res[+i + 1]
+			}
+			if (res[i].indexOf('Description MusicBrainz Album Artist Id') >= 0) {
+
+				info.artist_id = res[+i + 1]
+			}
+			if (res[i].indexOf('Unique File ID  http//musicbrainz.org') >= 0) {
+				info.id = res[i].substring(39)
+			}
+
+		}
+		cb(info)
 	});
 	
 }

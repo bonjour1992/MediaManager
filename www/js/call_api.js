@@ -16,7 +16,7 @@ function api(method,data,callback)
 			}
 			if ( callback[xhr.status])
 			{
-				callback[xhr.status](res)
+				callback[xhr.status](res,method,data,callback)
 			}
 			else
 			{
@@ -39,4 +39,14 @@ function watchlist(media,on,cb)
 
 	api("watchlist",{type:media.type,id:media.id,state:on},{200:cb,403:logout})
 
+}
+
+function retry(res,method,data,callback)
+{
+	api(method,data,callback)
+}
+
+function dl(magnet,id,type,hash)
+{
+	api("download",{magnet:magnet,id:id,type:type,hash:hash},{})
 }

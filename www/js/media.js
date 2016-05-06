@@ -63,10 +63,14 @@ function media(type,id)
 	
 	core.listener("info.releases",b_panel(panel,"releases","Releases",b_list_cover_printer()))	
 	//file
+	core.listener("info.name",b_command(info,"Get torrent",function (data) { return function() {core.request("torrent_search",{id:id,type:type,name:data},"torrent")}}))
+	core.listener("torrent", b_panel(main, "torrent", "Torrent", b_table()))
+
+
 	core.listener("file.filename",b_panel(panel,"file","file",b_append_tag({},"p")))
 	core.listener("file.size",b_append_tag("panel-body-file","p","size : "," Mo"))
 	core.listener("file.path",b_cond(video_check,b_command("panel-body-file","watch",b_player_video,"data")))
-	core.listener("file.path",b_cond(audio_check,b_command("panel-body-file","listen",b_player_audio,"data")))
+	core.listener("file.path",b_cond(audio_check,b_command("panel-body-file","Listen",function () { return function() {core.request("playlist",{id:id,type:type},"playlist")}})))
 	core.listener("file.path",b_button("panel-body-file","download","data"))
 	core.listener("file.available",b_panel(panel,"file","file",b_append_tag({},"p","Files availables : ")))
 	core.listener("file.available",b_command("panel-body-file","Listen",function () { return function() {core.request("playlist",{id:id,type:type},"playlist")}}))

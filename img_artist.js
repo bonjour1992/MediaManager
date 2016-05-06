@@ -19,9 +19,9 @@
 		mb.query("artist",f.id,"url-rels",function (res_mb)
 		{
 			name=res_mb.name[0]
-			if (res_mb["life-span"] && res_mb["life-span"][0]["begin"])
+			if (res_mb["life-span"] && res_mb["life-span"]["begin"])
 				{
-				date=res_mb["life-span"][0]["begin"][0]
+				date=res_mb["life-span"]["begin"]
 				if (date.length==4)
 				{
 					date+="-01-01"
@@ -33,17 +33,17 @@
 				}
 				if (res_mb["relation-list"])
 				{
-			for (var s in res_mb["relation-list"][0].relation)
+			for (var s in res_mb["relations"])
 			{
-			if (res_mb["relation-list"][0].relation[s]['$']["type"]=="IMDb")
+			if (res_mb["relations"][s]["type"]=="IMDb")
 			{
 				//console.log(res_mb["relation-list"][0].relation[s].target[0]['_'])
 			}
-			if (res_mb["relation-list"][0].relation[s]['$']["type"]=="image")
+			if (res_mb["relations"][s]["type"]=="image")
 			{
-				var h = crypto(res_mb["relation-list"][0].relation[s].target[0]['_'].substring(res_mb["relation-list"][0].relation[s].target[0]['_'].lastIndexOf(":")+1))
+				var h = crypto(res_mb["relations"][s].url.resource.substring(res_mbres_mb["relations"][s].url.resource.lastIndexOf(":")+1))
 				//console.log( "https://upload.wikimedia.org/wikipedia/commons/"+h[0]+"/"+h[0]+h[1]+"/"+res_mb["relation-list"][0].relation[s].target[0]['_'].substring(res_mb["relation-list"][0].relation[s].target[0]['_'].lastIndexOf(":")+1))
-				 poster ="https://upload.wikimedia.org/wikipedia/commons/"+h[0]+"/"+h[0]+h[1]+"/"+res_mb["relation-list"][0].relation[s].target[0]['_'].substring(res_mb["relation-list"][0].relation[s].target[0]['_'].lastIndexOf(":")+1)
+				 poster ="https://upload.wikimedia.org/wikipedia/commons/"+h[0]+"/"+h[0]+h[1]+"/"+res_mbres_mb["relations"][s].url.resource.substring(res_mbres_mb["relations"][s].url.resource.lastIndexOf(":")+1)
 			}
 			
 			}
@@ -56,7 +56,7 @@
 					for ( var i in res.images)
 					{
 						var img = res.images[i].title.replace(/ /g,"_")
-						if (!poster && img.substring(img.lastIndexOf("."))!=".svg" && img.substring(img.lastIndexOf("."))!=".ogg"&& img.substring(img.lastIndexOf("."))!=".php")
+						if (!poster && img.substring(img.lastIndexOf("."))!=".svg" && img.substring(img.lastIndexOf("."))!=".ogg"&& img.substring(img.lastIndexOf("."))!=".php"&& img.substring(img.lastIndexOf("."))!=".gif")
 						{
 							console.log(img)
 						var h = crypto(img.substring(img.lastIndexOf(":")+1))

@@ -9,19 +9,20 @@ var transmission = new Transmission({
 
 
 // Get details of all torrents currently queued in transmission app
-function getTransmissionStats(){
-    transmission.sessionStats(function(err, result){
-        if(err){
-            console.log(err)
-        } else {
-            console.log(result)
-        }
-    });
-}
+module.exports={
+    getTransmissionStats:function (){
+        transmission.sessionStats(function(err, result){
+            if(err){
+                console.log(err)
+            } else {
+                console.log(result)
+            }
+        });
+    },
 
 
 // Add a torrent by passing a URL to .torrent file or a magnet link
-function addTorrent(url,type){
+addTorrent:function (url,type){
     transmission.addUrl(url, {
         "download-dir" : "/mnt/media/temp/"+type+"/"
     }, function(err, result) {
@@ -32,10 +33,10 @@ function addTorrent(url,type){
         console.log('Just added a new torrent.')
         console.log('Torrent ID: ' + id)
     });
-}
+},
 
 // Get various stats about a torrent in the queue
-function getTorrentDetails(id) {
+getTorrentDetails:function (id) {
     transmission.get(id, function(err, result) {
         if (err) {
             throw err;
@@ -50,9 +51,9 @@ function getTorrentDetails(id) {
             console.log("Status = "+ getStatusType(result.torrents[0].status));
         }
     });
-}
+},
 
-function deleteTorrent(id){
+deleteTorrent:function (id){
     transmission.remove(id, true, function(err, result){
         if (err){
             console.log(err);
@@ -66,4 +67,5 @@ function deleteTorrent(id){
             removeTorrent(id);
         }
     });
+}
 }

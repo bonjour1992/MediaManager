@@ -5,24 +5,27 @@ var parseXML = require('xml2js').parseString;
 module.exports = {
     query : function (obj,id,inc,success,failure )
     {
-		console.log("call to musicbrainz: http://musicbrainz.org/ws/2/"+obj+"/"+id+"?inc="+inc+"&fmt=json")
-        var req= http.request(
+      console.log("call to musicbrainz: http://musicbrainz.org/ws/2/"+obj+"/"+id+"?inc="+inc+"&fmt=json")
+      var req= http.request(
+      {
+        hostname:"musicbrainz.org",
+        port:80,
+        path:"/ws/2/"+obj+"/"+id+"?inc="+inc+"&fmt=json",
+        method :"GET",
+        headers: {'user-agent': 'media manager (contact:bonjour1992@laposte.net)'},
+    }, function(res)
+    {
+        var st='';
+        res.on('data',function (chunk)
         {
-            hostname:"musicbrainz.org",
-            port:80,
-            path:"/ws/2/"+obj+"/"+id+"?inc="+inc+"&fmt=json",
-            method :"GET",
-            headers: {'user-agent': 'media manager (contact:bonjour1992@laposte.net)'},
-        }, function(res)
+            st+=chunk;
+        })
+        res.on('end',function()
         {
-            var st='';
-            res.on('data',function (chunk)
-            {
-                st+=chunk;
-            })
-            res.on('end',function()
-            {
+            try {
                 var res= JSON.parse(st)
+
+                
                 if(res.error)
                 {
                     failure(res.error)
@@ -30,21 +33,25 @@ module.exports = {
                 else
                 {
                   success(res)
-                }
-              })
-          
+              }
+          }
+          catch (e) {
+            failure(e)
+        }
+    })
+        
 
-      
-        })
-        req.on("error",function(e)
-        {
-            failure(e.message)
-        });
-        req.end();
-    },
-    
-    search : function (type,s,success,failure)
-    {
+        
+    })
+      req.on("error",function(e)
+      {
+        failure(e.message)
+    });
+      req.end();
+  },
+  
+  search : function (type,s,success,failure)
+  {
 		//console.log("call to musicbrainz: http://musicbrainz.org/ws/2/"+type+"?query="+encodeURIComponent( s))
         var req= http.request(
         {
@@ -63,14 +70,14 @@ module.exports = {
             res.on('end',function()
             {
                 try {
-    success(JSON.parse(st))
-}
-catch (e) {
-failure(e)
-}
-              
-                    
-                })
+                    success(JSON.parse(st))
+                }
+                catch (e) {
+                    failure(e)
+                }
+                
+                
+            })
         })
         req.on("error",function(e)
         {

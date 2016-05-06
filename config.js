@@ -14,5 +14,6 @@ music_folder :"/mnt/media/music",
 		person:"movie_credits,tv_credits,external_ids,images",
 		tv:"images,credits,external_ids"
 	},
-	video_file : [ ".mp4",".avi",".mkv",".flv"]
+	video_file : [ ".mp4",".avi",".mkv",".flv"],
+	audio_file : [".mp3"]
 }	

@@ -17,7 +17,7 @@ module.exports={
 
     for ( var i in list)
     {
-    	zip.file("/mnt/media/music/"+list[i].filename.substring(11),{name:list[i].filename.substring(11)})
+    	zip.file("/mnt/media/music"+list[i].filename.substring(11),{name:list[i].filename.substring(11)})
     }
 
         zip.finalize()

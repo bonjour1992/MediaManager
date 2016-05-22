@@ -16,7 +16,8 @@ var arg_number={
 	named:2,
 	watchlist:2,
 	like:2,
-	id_like:2
+	id_like:2,
+	wanted:1
 }
 
 

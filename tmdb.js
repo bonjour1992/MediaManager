@@ -80,6 +80,35 @@ module.exports = {
 			failure(e.message);
 		})
 		req.end()
+	},
+	find : function (imdb,success,failure)
+	{
+		var req = http.request({
+			hostname : "api.themoviedb.org",
+			port : 80,
+			path : "/3/find/"+imdb+"?external_source=imdb_id&api_key=" + config.tmdb_key ,
+			method : "GET"
+		}, function (res) {
+			var st = '';
+			res.on('data', function (chunk) {
+				st += chunk;
+			})
+			res.on('end', function () {
+				var res = JSON.parse(st)
+				if (res.movie_results)
+				{
+					success(res)
+				}
+				else
+				{
+					failure ("imdb id not found")
+				}
+			})
+		});
+		req.on("error", function (e) {
+			failure(e.message);
+		})
+		req.end()	
 	}
 }
 

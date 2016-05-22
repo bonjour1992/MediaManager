@@ -114,6 +114,7 @@ function eyed3(f, cb) {
 			}
 
 		}
+		info.id = info.id || "s-"+info.artist+"-"+info.title
 		cb(info)
 	});
 	

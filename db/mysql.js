@@ -126,7 +126,9 @@ module.exports = {
 					break
 					case "id_like":
 					where +=" and id like '"+filters[f][1]+"%' "
-					break				
+					break	
+					case "wanted":
+					where += " and id in ( select object from link where type='wanted') "			
 					default: 
 					where += " and id in (select object from link where properties='" + filters[f][0][0] + filters[f][1] + "') "
 				}
@@ -266,16 +268,18 @@ module.exports = {
 
 			info.album_id = info.album_id||"-"+info.album
 			info.artist_id = info.artist_id ||"-"+info.artist
+			info.album = info.album||"-None"
+			info.artist= info.artist||"-None"
 
 			if (info.album_id ){
 				exec_query("insert into link values('" + db_id(type, info.id) + "','" + db_id("album",info.album_id) + "','album','"+ (1*info.disc*1000+1*info.track)+"')")
-				exec_query(" insert into media values('"+db_id('album',info.album_id)+"','"+ mysql_real_escape_string(info.album)+"','"+info.year+"-01-01','data"+info.folder+"Folder.jpg')")
+				exec_query(" insert into media values('"+db_id('album',info.album_id)+"','"+ mysql_real_escape_string(info.album)+"','"+info.year+"-01-01','data"+mysql_real_escape_string(info.folder)+"Folder.jpg')")
 				exec_query("insert into link values('" + db_id('album',info.album_id) + "','" + db_id("band",info.artist_id) + "','artist','')")
 			}
 
 			if (info.artist_id ){
 				exec_query("insert into link values('" + db_id(type, info.id) + "','" + db_id("band",info.artist_id) + "','artist','"+info.album_id+"-"+ (1*info.disc*1000+1*info.track)+"')")
-				exec_query("insert into media values('"+db_id('band',info.artist_id)+"','"+ mysql_real_escape_string(info.artist)+"','','')")
+				exec_query("insert into media values('"+db_id('band',info.artist_id)+"','"+ mysql_real_escape_string(info.artist)+"','','data"+mysql_real_escape_string(info.folder.substring(0, info.folder.lastIndexOf("/",info.folder.length -2)))+"/Folder.jpg')")
 			}
 			if (info.genre_id)
 			{
@@ -296,7 +300,7 @@ module.exports = {
 		exec_query("select distinct(properties) as prop from link where  properties not in (select id from media)", cb, err)
 	},
 	get_list_missing : function (type, cb, err) {
-		exec_query("select  '" + type + "' as type , substring(media,2) as id  from ((select media from rating) union (select media from file) union (select object from link where type ='watchlist')) med where media not in (select id from media) and media like '" + type[0] + "%'", cb, err)
+		exec_query("select  '" + type + "' as type , substring(media,2) as id  from ((select media from rating) union (select media from file) union (select object from link where type = 'wanted' or type ='watchlist')) med where media not in (select id from media) and media like '" + type[0] + "%'", cb, err)
 	},
 	get_watchlist:function(type,id,user,cb)
 	{
@@ -341,6 +345,16 @@ module.exports = {
 	torrent:function (type,id,hash)
 	{
 		exec_query("insert into link values('"+db_id(type,id)+"','t"+hash+"','torrent','"+type+"')")
+	},
+	add_wanted : function (id ,user )
+	{
+		exec_query("select * from file where media='m"+id+"'",function (row)
+		{
+			if ( !row[0])
+			{
+				exec_query("insert into link values('"+db_id("movie",id)+"','u"+user+"','wanted',now())")
+			}
+		})
 	}
 
 }
@@ -368,6 +382,7 @@ function t_type()
 function noop() {}
 
 function mysql_real_escape_string(str) {
+	str =str ||""
 	return str.replace(/[\0\x08\x09\x1a\n\r"'\\\%]/g, function (char) {
 		switch (char) {
 			case "\0":

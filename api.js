@@ -360,7 +360,7 @@ var torrent = require('./torrent.js')
 		for (var f in req.body.filters) {
 			var ok = false
 					//valid all parameter here
-					var valid_filter = ["type","watchlist","named","file","actor", "director", "keyword", "order", "genre", "nation", "language", "companie", "rated", "unrated", "year", "rate","like","id_like"]
+					var valid_filter = ["wanted","type","watchlist","named","file","actor", "director", "keyword", "order", "genre", "nation", "language", "companie", "rated", "unrated", "year", "rate","like","id_like"]
 					if (valid_filter.indexOf(req.body.filters[f][0]) >= 0) {
 						ok = true
 					}
@@ -412,6 +412,12 @@ var torrent = require('./torrent.js')
 					case "band":
 					kickass.search("category:music "+req.body.name,req.body.id,req.body.type,st_json(res),st_err(res,"kickass"))
 					break
+					case "tv":
+					kickass.search("category:tv "+req.body.name,req.body.id,req.body.type,st_json(res),st_err(res,"kickass"))
+					break
+					case "movie":
+					kickass.search("category:movies "+req.body.name,req.body.id,req.body.type,st_json(res),st_err(res,"kickass"))
+					break
 				}
 
 			}
@@ -433,9 +439,19 @@ function st_err(res,elem)
 {
 	return function (err)
 	{
-		res.status('500').json({
+		if (err.indexOf("busy")!=-1)
+		{
+		res.status('503').json({
 			err :elem+" : "+ err
 		})
+		}
+		else
+		{
+		res.status('500').json({
+			err :elem+" : "+ err
+		})			
+		}
+
 	}
 }
 

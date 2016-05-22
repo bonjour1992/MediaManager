@@ -18,7 +18,7 @@
 		var name
 		mb.query("artist",f.id,"url-rels",function (res_mb)
 		{
-			name=res_mb.name[0]
+			name=res_mb.name
 			if (res_mb["life-span"] && res_mb["life-span"]["begin"])
 				{
 				date=res_mb["life-span"]["begin"]

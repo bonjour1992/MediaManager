@@ -186,7 +186,7 @@ function print_cover(elem, media) {
 		p._add_elem("br")
 		p._write(media.info)
 	}
-	if (media.rate)
+	//if (media.rate)
 	{
 		p._add_elem("br")
 		print_rating(p,getCookie("user")||0,media.rate,media)
@@ -240,6 +240,14 @@ function print_item(elem, data) {
 	elem._add_elem("a", {
 		href : "#get&" + data.type + "&" + data.id,
 		class : "btn btn-default"
+	})._write(data.name)
+	elem._write(data.info ? " : " + data.info : "")
+}
+
+function print_item_link(elem, data) {
+	elem._add_elem("a", {
+		href : "#get&" + data.type + "&" + data.id,
+		class : "lnk"
 	})._write(data.name)
 	elem._write(data.info ? " : " + data.info : "")
 }

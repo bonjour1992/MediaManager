@@ -74,8 +74,8 @@
 }
 
 #playlist{
-	max-height:350px;
-	width :30%;
+	max-height:400px;
+	width :45%;
 	overflow: scroll;
 }
 
@@ -91,8 +91,8 @@
 
 #lyric{
 	float : right;
-	max-height:390px;
-	width :65%;
+	max-height:410px;
+	width :50%;
 	overflow: scroll;
 }
 

@@ -38,3 +38,10 @@ function get(type,id)
 	}
 }
 
+function listen(type,id)
+{
+        core.clear()
+    core.init(type,id)
+        core.listener("playlist",b_playlist_audio())
+        core.request("playlist",{id:id,type:type},"playlist")
+}

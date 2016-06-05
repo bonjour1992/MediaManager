@@ -45,7 +45,7 @@ module.exports = {
 				incorect();
 			}
 		}, cb_err, function (res) {
-			if (res[0].id) {
+			if (res[0] && res[0].id) {
 				return res[0].id
 			} else {
 				return false
@@ -265,12 +265,13 @@ module.exports = {
 			if (info.vote_average) {
 				exec_query("insert into rating values('0','" + db_id(type, info.id) + "','" + info.vote_average + "','') on duplicate key update rate='" + info.vote_average + "'")
 			}
-
+			if (type=="song")
+			{
 			info.album_id = info.album_id||"-"+info.album
 			info.artist_id = info.artist_id ||"-"+info.artist
 			info.album = info.album||"-None"
 			info.artist= info.artist||"-None"
-
+			}
 			if (info.album_id ){
 				exec_query("insert into link values('" + db_id(type, info.id) + "','" + db_id("album",info.album_id) + "','album','"+ (1*info.disc*1000+1*info.track)+"')")
 				exec_query(" insert into media values('"+db_id('album',info.album_id)+"','"+ mysql_real_escape_string(info.album)+"','"+info.year+"-01-01','data"+mysql_real_escape_string(info.folder)+"Folder.jpg')")
@@ -312,11 +313,15 @@ module.exports = {
 	},
 	playlist : function (type,id ,cb, err)
 	{
-		exec_query("select distinct 'song' as type , substring(object,2) as id ,name,artist, concat('/data',folder,filename) as filename from link join file on object=media join media on object= id  join  (select distinct name as artist,object as s  from media join link on id=properties where type='artist' ) ta on s=id  where  (( type='artist' or type='album' or type='list-song' or type='genre-music' ) and properties='"+db_id(type,id)+"') or (object='"+db_id("song",id)+"') order by properties,value",cb,err)
+		exec_query("select distinct 'song' as type , substring(object,2) as id ,name,artist,album,substring(artist_id,2) as artist_id,substring(album_id,2) as album_id, concat('/data',folder,filename) as filename from link join file on object=media join media on object= id join  (select distinct name as album,properties as album_id,object as sa  from media join link on id=properties where type='album' ) tab on sa=id  join  (select distinct name as artist,object as s ,properties as artist_id from media join link on id=properties where type='artist' ) ta on s=id  where  (( type='artist' or type='album' or type='list-song' or type='genre-music' ) and properties='"+db_id(type,id)+"') or (object='"+db_id("song",id)+"') or '"+type+"'='all' order by properties,value",cb,err)
 	},
 	play_rated : function (user,rate,cb,err)
 	{
-		exec_query("select  'song' as type , substring(id,2) as id ,name, filename, folder from rating natural join file  join media on media= id where rate>='"+rate+"' order by rand()",cb,err)
+exec_query("select 'song' as type , substring(id,2) as id ,name,artist,album,substring(artist_id,2) as artist_id,substring(album_id,2) as album_id, concat('/data',folder,filename) as filename ,rate from ((select media as id  ,rate  from rating where media like 's%' and user ='"+user+"' and rate>='"+rate+"')union (select object as id , rate from rating join link on media =properties where object like 's%' and type='album' and user ='"+user+"' and rate>='"+rate+"' and object not in (select media as id    from rating where media like 's%' and user ='"+user+"' )) union (select object as id , rate from rating join link on media =properties where object like 's%' and type='artist' and user ='"+user+"' and rate>='"+rate+"' and object not in (select media as id    from rating where media like 's%' and user ='"+user+"' ) and object not in (select object as id  from rating join link on media =properties where type='album' and user ='"+user+"'))) rate join file f on media = id	natural join media m 		join  (select distinct name as album,object as sa,properties as album_id from media join ( select * from link where type='album') l on id=properties ) tab on sa=id		join  (select distinct name as artist,object as s ,properties as artist_id from media join ( select * from link where type='artist') l   on id=properties ) ta on s=id",cb,err)
+	},
+	play_all : function (user,cb,err)
+	{
+		exec_query("select distinct 'song' as type , substring(id,2) as id ,name,artist,album,substring(artist_id,2) as artist_id,substring(album_id,2) as album_id, concat('/data',folder,filename) as filename  from (select * from file where media like 's%') file  join media on media= id join  (select distinct name as album,properties as album_id,object as sa  from media join link on id=properties where type='album' ) tab on sa=id  join  (select distinct name as artist,object as s ,properties as artist_id from media join link on id=properties where type='artist' ) ta on s=id order by rand()",cb,err)
 	},
 	upd_media : function(type,id,date,img,cb,err)
 	{

@@ -6,7 +6,8 @@ function api(method,data,callback)
             data : JSON.stringify(data),
 			contentType: "application/json",
             datatype:"json",
-            mimeType : "json"
+            mimeType : "json",
+            timeout: 30000000
         }).always(function (res,status,xhr)
         {
 			if (status != "success") 

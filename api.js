@@ -13,7 +13,7 @@
 	var config = require('./config.js')
 	var lyric = require('./lyric.js')
 	var kickass = require('./kickass.js')
-var torrent = require('./torrent.js')
+	var torrent = require('./torrent.js')
 
 
 	module.exports = function () {
@@ -129,25 +129,25 @@ var torrent = require('./torrent.js')
 					var val =util.proper_property(info, "album")
 
 					wiki.query("extracts&exintro=&explaintext=",val.name||"",function (ext) {
-								val.overview = ext.extract
-								wiki.query("images", val.name , function (imgs)
+						val.overview = ext.extract
+						wiki.query("images", val.name , function (imgs)
+						{
+							val.posters=[]
+							for ( var i in imgs.images)
+							{
+								var img = imgs.images[i].title.replace(/ /g,"_")
+								if ( img.substring(img.lastIndexOf("."))!=".svg" && img.substring(img.lastIndexOf("."))!=".ogg"&& img.substring(img.lastIndexOf("."))!=".php")
 								{
-									val.posters=[]
-									for ( var i in imgs.images)
-									{
-										var img = imgs.images[i].title.replace(/ /g,"_")
-										if ( img.substring(img.lastIndexOf("."))!=".svg" && img.substring(img.lastIndexOf("."))!=".ogg"&& img.substring(img.lastIndexOf("."))!=".php")
-										{
 
-											var h = md5(img.substring(img.lastIndexOf(":")+1))
-											val.posters.push("https://upload.wikimedia.org/wikipedia/commons/"+h[0]+"/"+h[0]+h[1]+"/"+img.substring(img.lastIndexOf(":")+1))
-										}
-									}
-									res.json(val)	
-								},st_err(res,"Wikipedia"))
+									var h = md5(img.substring(img.lastIndexOf(":")+1))
+									val.posters.push("https://upload.wikimedia.org/wikipedia/commons/"+h[0]+"/"+h[0]+h[1]+"/"+img.substring(img.lastIndexOf(":")+1))
+								}
+							}
+							res.json(val)	
+						},st_err(res,"Wikipedia"))
 
 
-							},st_err(res,"Wikipedia"))
+					},st_err(res,"Wikipedia"))
 				}, st_err(res,"MB"))
 			}
 			else if (req.body.type === "song") 
@@ -333,10 +333,21 @@ var torrent = require('./torrent.js')
 	{
 		if (check_param(req,res,['type','id']))
 		{
-			db.playlist(req.body.type,req.body.id,st_json(res),st_err(res,"DB"))
+			if (req.body.type=="rate")
+			{
+				db.play_rated(req.cookies.user,req.body.id,st_json(res),st_err(res,"DB"))
+			}
+			else if (req.body.type=="all")
+			{
+				db.play_all(req.cookies.user,st_json(res),st_err(res,"DB"))
+			}
+			else
+			{
+				db.playlist(req.body.type,req.body.id,st_json(res),st_err(res,"DB"))
+			}
 		}
 	})
-		app.post('/save_playlist',function(req,res)
+	app.post('/save_playlist',function(req,res)
 	{
 		if (check_param(req,res,['name','list']))
 		{
@@ -346,12 +357,12 @@ var torrent = require('./torrent.js')
 	app.get('/zip_playlist',function(req,res)
 	{
 
-			db.playlist(req.query.type,req.query.id,function (pl)
-			{
-				zip.zip(pl,"song",res)
+		db.playlist(req.query.type,req.query.id,function (pl)
+		{
+			zip.zip(pl,"song",res)
 
-			}
-				,st_err(res,"DB"))
+		}
+		,st_err(res,"DB"))
 
 	})
 	app.post('/list', function (req, res) {
@@ -396,41 +407,41 @@ var torrent = require('./torrent.js')
 					})
 				}
 			})
-		app.post('/lyric',function (req,res)
-		{
-			if (check_param(req,res,['file']))
+	app.post('/lyric',function (req,res)
+	{
+		if (check_param(req,res,['file']))
 		{
 			lyric.lyric(req.body.file,st_json(res))
 		}
-		})
-		app.post('/torrent_search',function (req,res)
+	})
+	app.post('/torrent_search',function (req,res)
+	{
+		if (check_param(req,res,['name','id','type']))
 		{
-			if (check_param(req,res,['name','id','type']))
+			switch (req.body.type)
 			{
-				switch (req.body.type)
-				{
-					case "band":
-					kickass.search("category:music "+req.body.name,req.body.id,req.body.type,st_json(res),st_err(res,"kickass"))
-					break
-					case "tv":
-					kickass.search("category:tv "+req.body.name,req.body.id,req.body.type,st_json(res),st_err(res,"kickass"))
-					break
-					case "movie":
-					kickass.search("category:movies "+req.body.name,req.body.id,req.body.type,st_json(res),st_err(res,"kickass"))
-					break
-				}
+				case "band":
+				kickass.search("category:music "+req.body.name,req.body.id,req.body.type,st_json(res),st_err(res,"kickass"))
+				break
+				case "tv":
+				kickass.search("category:tv "+req.body.name,req.body.id,req.body.type,st_json(res),st_err(res,"kickass"))
+				break
+				case "movie":
+				kickass.search("category:movies "+req.body.name,req.body.id,req.body.type,st_json(res),st_err(res,"kickass"))
+				break
+			}
 
-			}
-		})
-		app.post('/download',function (req,res)
+		}
+	})
+	app.post('/download',function (req,res)
+	{
+		if (check_param(req,res,['magnet','id','type','hash']))
 		{
-			if (check_param(req,res,['magnet','id','type','hash']))
-			{
-				torrent.addTorrent(req.body.magnet,req.body.type)
-				db.torrent(req.body.type,req.body.id,req.body.hash)
-				st_ok(res)()
-			}
-		})
+			torrent.addTorrent(req.body.magnet,req.body.type)
+			db.torrent(req.body.type,req.body.id,req.body.hash)
+			st_ok(res)()
+		}
+	})
 	return app;
 }
 
@@ -439,17 +450,17 @@ function st_err(res,elem)
 {
 	return function (err)
 	{
-		if (err.indexOf("busy")!=-1)
+		if (err && err.indexOf("busy")!=-1 || err.indexOf("rate limit")!=-1)
 		{
-		res.status('503').json({
-			err :elem+" : "+ err
-		})
+			res.status('503').json({
+				err :elem+" : "+ err
+			})
 		}
 		else
 		{
-		res.status('500').json({
-			err :elem+" : "+ err
-		})			
+			res.status('500').json({
+				err :elem+" : "+ err
+			})			
 		}
 
 	}

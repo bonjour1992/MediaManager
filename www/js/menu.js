@@ -21,7 +21,9 @@ function build_menu()
 	[{name:"Bands",link:"#list&order&name&asc&type&band"},
 	{name:"Albums",link:"#list&order&name&asc&type&album"},
 	{name:"Playlist",link:"#list&order&name&asc&type&named"},
-	{name:"Genre",link:"#list&order&name&asc&id_like&gm"}]}]
+	{name:"Genre",link:"#list&order&name&asc&id_like&gm"},
+	{name:"Shuffle All",link:"#listen&all&music"},
+	{name:"Listen by rate",link:"#listen&rate&7"}]}]
 	
 	
 	//build menu left
